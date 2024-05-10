@@ -575,6 +575,9 @@ if(ZMQ_HAVE_WINDOWS)
   check_cxx_symbol_exists(GetAdaptersAddresses "winsock2.h;iphlpapi.h" HAVE_IPHLAPI)
   check_cxx_symbol_exists(if_nametoindex "iphlpapi.h" HAVE_IF_NAMETOINDEX)
 
+  set(CMAKE_REQUIRED_LIBRARIES "synchronization.lib")
+  check_cxx_symbol_exists(WaitOnAddress "windows.h" HAVE_WAITONADDRESS)
+
   set(CMAKE_REQUIRED_LIBRARIES "")
   # TODO: This not the symbol we're looking for. What is the symbol?
   check_library_exists(ws2 fopen "" HAVE_WS2)
@@ -605,6 +608,10 @@ if(WIN32 AND NOT CYGWIN)
 
   if(NOT HAVE_IPHLAPI)
     message(FATAL_ERROR "Cannot link to iphlapi")
+  endif()
+  
+  if(NOT HAVE_WAITONADDRESS)
+    message(FATAL_ERROR "Cannot link to Synchronization")
   endif()
 endif()
 
@@ -1523,6 +1530,10 @@ if(BUILD_SHARED)
     target_link_libraries(libzmq iphlpapi)
   endif()
 
+  if(HAVE_WAITONADDRESS)
+    target_link_libraries(libzmq synchronization)
+  endif()
+
   if(RT_LIBRARY)
     target_link_libraries(libzmq -lrt)
   endif()
@@ -1575,6 +1586,10 @@ if(BUILD_STATIC)
 
   if(HAVE_IPHLAPI)
     target_link_libraries(libzmq-static iphlpapi)
+  endif()
+
+  if(HAVE_WAITONADDRESS)
+    target_link_libraries(libzmq-static synchronization)
   endif()
 
   if(RT_LIBRARY)
